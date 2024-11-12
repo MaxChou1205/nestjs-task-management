@@ -11,6 +11,20 @@ export class TasksService {
     return this.tasks;
   }
 
+  getTasksWithFilters(filterConditions: any): Task[] {
+    const { status, search } = filterConditions;
+    let tasks = this.getAllTasks();
+    if (status) {
+      tasks = tasks.filter((task) => task.status === status);
+    }
+    if (search) {
+      tasks = tasks.filter((task) => {
+        return task.title.includes(search) || task.description.includes(search);
+      });
+    }
+    return;
+  }
+
   createTask(createTaskDto: CreateTaskDto): Task {
     const task = {
       id: uuid(),
@@ -23,11 +37,11 @@ export class TasksService {
   }
 
   getTaskById(id: string): Task {
-    return this.tasks.find(task => task.id === id);
+    return this.tasks.find((task) => task.id === id);
   }
 
   deleteTask(id: string): void {
-    this.tasks = this.tasks.filter(task => task.id !== id);
+    this.tasks = this.tasks.filter((task) => task.id !== id);
   }
 
   updateTaskStatus(id: string, status: TaskStatus): Task {
