@@ -71,3 +71,13 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+
+## with prisma
+[prisma](https://www.prisma.io/docs/getting-started/quickstart-sqlite)
+[nest docs](https://docs.nestjs.com/recipes/prisma)
+### script  
+
+initial Prisma setup: `npx prisma init --datasource-provider sqlite`  
+generate sql migration: `npx prisma migrate dev --name init`  
+load schema and generate client: `npx prisma generate`  
