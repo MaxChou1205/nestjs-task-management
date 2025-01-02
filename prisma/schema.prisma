@@ -16,3 +16,9 @@ model Task {
   description  String
   status String
 }
+
+model User {
+  id    String @default(uuid()) @id
+  username  String @unique
+  password String
+}
