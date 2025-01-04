@@ -4,13 +4,16 @@ import { Task, TaskStatus } from './tasks.interface';
 import { PrismaService } from 'src/prisma.service';
 import { v4 as uuid } from 'uuid';
 import { GetTasksFilterDto } from './dtos/get-tasks-filter.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class TasksRepository {
   constructor(private prisma: PrismaService) {}
 
-  async getTasks(filterConditions: GetTasksFilterDto) {
-    const whereConditions = {};
+  async getTasks(filterConditions: GetTasksFilterDto, user: User) {
+    const whereConditions = {
+      userId: user.id,
+    };
     if (filterConditions.status) {
       whereConditions['status'] = filterConditions.status;
     }
@@ -22,21 +25,34 @@ export class TasksRepository {
     }
     return (await this.prisma.task.findMany({
       where: whereConditions,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        status: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     })) as Task[];
   }
-  async getTaskById(id: string) {
+  async getTaskById(id: string, user: User) {
     const found = (await this.prisma.task.findUnique({
-      where: { id },
+      where: { id, userId: user.id },
     })) as Task;
 
     return found;
   }
-  async createTask(createTaskDto: CreateTaskDto) {
+  async createTask(createTaskDto: CreateTaskDto, user: User) {
     const task = {
       id: uuid(),
       title: createTaskDto.title,
       description: createTaskDto.description,
       status: TaskStatus.OPEN,
+      userId: user.id,
     };
     const createdTask = (await this.prisma.task.create({
       data: {
@@ -44,6 +60,7 @@ export class TasksRepository {
         title: task.title,
         description: task.description,
         status: task.status,
+        userId: user.id,
       },
     })) as Task;
     return createdTask;
