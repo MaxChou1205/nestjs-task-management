@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { Task, TaskStatus } from './tasks.interface';
 import { PrismaService } from 'src/prisma.service';
@@ -9,6 +13,7 @@ import { User } from '@prisma/client';
 @Injectable()
 export class TasksRepository {
   constructor(private prisma: PrismaService) {}
+  logger = new Logger('TasksRepository');
 
   async getTasks(filterConditions: GetTasksFilterDto, user: User) {
     const whereConditions = {
@@ -23,21 +28,29 @@ export class TasksRepository {
         { description: { contains: filterConditions.search.toLowerCase() } },
       ];
     }
-    return (await this.prisma.task.findMany({
-      where: whereConditions,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        user: {
-          select: {
-            id: true,
-            username: true,
+    try {
+      return (await this.prisma.task.findMany({
+        where: whereConditions,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+            },
           },
         },
-      },
-    })) as Task[];
+      })) as Task[];
+    } catch (err) {
+      this.logger.error(
+        `Failed to get tasks for user "${user.username}".`,
+        err.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
   async getTaskById(id: string, user: User) {
     const found = (await this.prisma.task.findUnique({

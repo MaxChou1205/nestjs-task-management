@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
 import { TasksService } from '@/tasks/tasks.service';
 import { Task } from './tasks.interface';
@@ -22,12 +23,16 @@ import { User } from '@prisma/client';
 @UseGuards(AuthGuard())
 export class TasksController {
   constructor(private tasksService: TasksService) {}
+  logger = new Logger('TasksController');
 
   @Get()
   async getTasks(
     @Query() filterConditions: GetTasksFilterDto,
     @GetUser() user: User,
   ): Promise<Task[]> {
+    this.logger.verbose(
+      `User "${user.username}" retrieving all tasks with filters ${JSON.stringify(filterConditions)}`,
+    );
     return await this.tasksService.getTasks(filterConditions, user);
   }
 
