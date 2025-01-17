@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { Task, TaskStatus } from './tasks.interface';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 import { v4 as uuid } from 'uuid';
 import { GetTasksFilterDto } from './dtos/get-tasks-filter.dto';
 import { User } from '@prisma/client';
