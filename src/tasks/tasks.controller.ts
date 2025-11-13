@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   Logger,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { TasksService } from '@/tasks/tasks.service';
 import { Task } from './tasks.interface';
@@ -18,6 +20,24 @@ import { UpdateTaskStatusDto } from './dtos/update-task-status-dto';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '@/auth/get-user.decorator';
 import { User } from '@prisma/client';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiProperty } from '@nestjs/swagger';
+
+export const uploadFile =
+  (fileName = 'file'): MethodDecorator =>
+  (target: any, propertyKey, descriptor: PropertyDescriptor) => {
+    ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          [fileName]: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    })(target, propertyKey, descriptor);
+  };
 
 @Controller('tasks')
 @UseGuards(AuthGuard())
@@ -53,6 +73,7 @@ export class TasksController {
   }
 
   @Patch('/:id/status')
+  // @ApiBody({ type: UpdateTaskStatusDto })
   async updateTaskStatus(
     @Param('id') id: string,
     @Body() updateTaskStatusDto: UpdateTaskStatusDto,
@@ -68,5 +89,24 @@ export class TasksController {
     @GetUser() user: User,
   ): Promise<void> {
     await this.tasksService.deleteTask(id, user);
+  }
+
+  @Post('/file')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  // @ApiImplicitFile({ name: 'file', required: true })
+  @ApiBody({
+    type: UpdateTaskStatusDto,
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  // @uploadFile('file')
+  async uploadFile(
+    @UploadedFile() file,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
+  ) {
+    return file;
   }
 }
